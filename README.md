@@ -9,11 +9,13 @@ If you want to see how this software works check out this youtube video here.
 
 # Development Environment
 
-This was created in [Microsofts Visual Code](https://code.visualstudio.com/)
+- [Microsofts Visual Code](https://code.visualstudio.com)
 
-Created using  [Python](https://www.python.org/)
+- [Python](https://www.python.org)
+
+- [Git / Github](https://git-scm.com)
 
 # Useful Websites
 
-{Make a list of websites that you found helpful in this project}
 * [W3Schools Python Intro](https://www.w3schools.com/python)
+- [Instructional Video](https://video.byui.edu/media/t/1_zyyx43ke)
