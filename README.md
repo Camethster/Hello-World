@@ -1,7 +1,7 @@
 # Overview
 
 This software is meant to give a greeting to the world.
-Hopefully, it will be the start of more exciting software.
+Hopefully, it will be the start of more exciting software by connecting Visual Studio Code to a Github account which will allow for version control.
 
 If you want to see how this software works check out this youtube video here.
 
