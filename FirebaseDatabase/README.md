@@ -58,3 +58,4 @@ The coding language used is [Python](https://www.python.org/) with the help of t
 * Add more specific search options
 * Another table for product
 * Specific Case Handling
+* Specific Delete Handling
