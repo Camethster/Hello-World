@@ -40,27 +40,6 @@ def action():
             choice = 0
     return choice
 
-def set_base(db):
-    # if the database hasn't been intialized set up the structure
-    db.set(
-       {
-            "Customer" :
-            {
-                "customer1" :
-                {
-                    "First_Name"  :  "" ,
-                    "Last_Name"  : "" ,
-                    "Street_Address" : "" ,
-                    "City" : "" ,
-                    "State" : "" ,
-                    "Zip_Code" : "" ,
-                    "Phone_Number"  : "" ,
-                    "Status" : "",
-                }
-            }
-        }
-    )
-
 def add_customer(db,fname,lname,address,city,state,zip_code,phone_number,status):
     # Get last customer name
     
@@ -134,8 +113,6 @@ def main():
     #Set up if not set up already 
         intialize()
         db = get_connected()
-        set_base(db)
-        
     except ValueError:
         pass
 
