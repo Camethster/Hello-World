@@ -5,14 +5,18 @@ import pickle
 import numpy as np
 from pprint import pprint
 import altair_saver
-from imblearn.over_sampling import RandomOverSampler 
+from imblearn.over_sampling import RandomOverSampler
+from  tabulate import tabulate 
 # %%
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn import metrics
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import Normalizer
+from sklearn.neural_network import MLPClassifier
 #%%
 url = "https://gist.githubusercontent.com/michhar/2dfd2de0d4f8727f873422c5d959fff5/raw/fa71405126017e6a37bea592440b4bee94bf7b9e/titanic.csv"
 
@@ -38,32 +42,45 @@ titanic.info()
 # %%
 #  Remove Na or Impute
 titanic.Floor.fillna("Unknown",inplace=True)
-
-alt.Chart(titanic).mark_bar().encode(
-    alt.X('Age'),
-    y = "count()"
-)
+titanic.Embarked.dropna(inplace=True)
+titanic.Age.fillna(method="ffill",inplace=True)
 rng = np.random.default_rng()
-randoms = pd.DataFrame(rng.choice(
-        titanic.Age.dropna(),
-        size=len(titanic.Age[titanic.Age.isna()]))).to_dict()
-
-titanic.Age.fillna(randoms,inplace=True)
+titanic.info()
 # %%
 # Change Datatypes Na Remove
 titanic.replace("Age",titanic.Age.round(0),inplace=True)
 titanic.replace("Fare",titanic.Fare.round(2),inplace=True)
-titanic = titanic.astype({"Floor" : 'object',"CabinNum" : 'float64'},copy=True)
-titanic = titanic.drop(["CabinStr","Cabin"])
+titanic.replace("Pclass",titanic.Pclass.astype("category"),inplace = True)
+titanic = titanic.astype({"Floor" : 'object',
+        "CabinNum" : 'float64',
+        "SibSp"  : 'float64',
+        "Parch" : 'float64',
+        "Pclass" : 'object'},copy=True)
+titanic = titanic.drop(["CabinStr","Cabin"],axis=1)
+titanic.CabinNum.fillna(0,inplace=True)
+titanic.dropna()
 # %%
 # Test & Train Split Pipeline()
 ec = OneHotEncoder()
-min_max_scaler = MinMaxScaler()
+norm = Normalizer()
 
-titanic_cat = ec.fit(titanic.select_dtypes(include="object"))
-titanic_scaler = min_max_scaler.fit(titanic.select_dtypes(exclude="object"))
+X = pd.DataFrame(np.concatenate(
+    [ec.fit_transform(titanic.select_dtypes(include="object")).toarray(),
+norm.transform(titanic.select_dtypes(exclude="object").drop("Y",axis=1))],axis=1),)
+X.columns = np.concatenate([ec.get_feature_names(),titanic.select_dtypes(exclude="object").drop("Y",axis=1).columns.tolist()])
+Y = titanic.Y
+X_train, X_test, y_train, y_test = train_test_split(X,Y)
 
+# %%
+# Model
+clf = GradientBoostingClassifier(n_estimators=1000)
+clf.fit(X_train,y_train)
+clf.score(X_test,y_test)
 
+# %%
+y_pred = clf.predict(X_test)
+met = pd.DataFrame(metrics.classification_report(y_test,y_pred,output_dict=True))
+print(met)
 # %%
 # Oversampling method
 ro = RandomOverSampler()
