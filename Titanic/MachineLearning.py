@@ -65,12 +65,13 @@ titanic = titanic.astype({"Floor" : 'object',
         "Pclass" : 'object'},copy=True)
 titanic = titanic.drop(["CabinStr","Cabin"],axis=1)
 titanic.CabinNum.fillna(0,inplace=True)
-titanic.dropna()
+titanic.dropna(inplace=True)
+titanic.info()
 # %%
 # Test & Train Split Pipeline()
-ec = OneHotEncoder()
+ec = OneHotEncoder(drop='first')
 norm = Normalizer()
-ro = RandomOverSampler()
+ro = RandomOverSampler(random_state=16)
 
 X = pd.DataFrame(np.concatenate(
     [ec.fit_transform(titanic.select_dtypes(include="object")).toarray(),
@@ -78,7 +79,7 @@ norm.fit_transform(titanic.select_dtypes(exclude="object").drop("Y",axis=1))],ax
 X.columns = np.concatenate([ec.get_feature_names(),titanic.select_dtypes(exclude="object").drop("Y",axis=1).columns.tolist()])
 Y = titanic.Y
 X_new, y_new = ro.fit_resample(X,Y)
-X_train, X_test, y_train, y_test = train_test_split(X_new,y_new)
+X_train, X_test, y_train, y_test = train_test_split(X_new,y_new,random_state=16)
 
 # %%
 # Model
@@ -89,7 +90,7 @@ clf.score(X_test,y_test)
 clf_svm = svm.NuSVC(gamma='auto',random_state=16)
 clf_svm.fit(X_train,y_train)
 
-clf_MLP = MLPClassifier(solver='lbfgs', hidden_layer_sizes={2,15}, max_iter = 10000,alpha=1e-5, random_state=16)
+clf_MLP = MLPClassifier(solver='lbfgs', hidden_layer_sizes={2,13}, max_iter = 10000,alpha=1e-5, random_state=16)
 clf_MLP.fit(X_train,y_train)
 
 clf_forest = RandomForestClassifier(n_estimators=10000,random_state=16)
@@ -115,7 +116,10 @@ print(met_forest)
 # %%
 guess = dict.fromkeys(ec.get_feature_names(),0)
 guess.update(dict.fromkeys(titanic.select_dtypes(exclude='object').drop('Y',axis=1).columns.tolist(),0))
-guess.update({'x0_E' : [1.0],'CabinNum' : [83.00], 'x1_1'  : [1.0],'x2_female' : [1.0], 'x3_C' :  [1.0],"Age" : [20.0], "SibSp" : [4.0], "Parch" : [2.0], "Fare" : [0.0]})
+# "Fare" : [0.0]
+guess.update({'x0_E' : [1.0],'CabinNum' : [83.00],'x2_male' : [0.0],"Age" : [20.0], "SibSp" : [4.0], "Parch" : [2.0],"Fare" : [0.0]})
+#guess.update({'x0_F' : [1.0],'CabinNum' : [84.00], 'x1_2'  : [1.0],'x2_male' : [1.0], 'x3_S' :  [1.0],"Age" : [22.0], "SibSp" : [3.0], "Parch" : [2.0],"Fare" : [5.53]})
+#guess.update({'x0_D' : [1.0],'CabinNum' : [64.00],'x2_male' : [1.0],"Age" : [21.0], "SibSp" : [3.0], 'x3_S' :  [1.0], "Parch" : [2.0],"Fare" : [4.26]})
 guess_x =  pd.DataFrame.from_dict(guess,orient='columns')
 enc_num_x = pd.DataFrame(norm.transform(guess_x[guess_x.columns[-5:]]),columns=["CabinNum","Age","SibSp","Parch","Fare"])
 guess_x[guess_x.columns[:-5]].combine_first(enc_num_x)
@@ -129,4 +133,24 @@ print(clf_svm.predict(guess_x)[0])
 print(clf_MLP.predict(guess_x)[0])
 print(clf_forest.predict(guess_x)[0])
 
+# %%
+features = X.columns.values
+importances = clf_forest.feature_importances_
+indices = np.argsort(importances)
+
+plt.title('Feature Importances')
+plt.barh(range(len(indices)), importances[indices], color='b', align='center')
+plt.yticks(range(len(indices)), [features[i] for i in indices])
+plt.xlabel('Relative Importance')
+plt.show()
+# %%
+features = X.columns.values
+importances = clf.feature_importances_
+indices = np.argsort(importances)
+
+plt.title('Feature Importances')
+plt.barh(range(len(indices)), importances[indices], color='b', align='center')
+plt.yticks(range(len(indices)), [features[i] for i in indices])
+plt.xlabel('Relative Importance')
+plt.show()
 # %%
